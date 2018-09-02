@@ -32,10 +32,11 @@ const UserSchema = new mongoose.Schema({
         type: String,
         default: 'images/userImg.jpg'
     },
-    contact: {
-        type: Number,
-        required:true,
-        minlength:12,
+    contact:{
+        type:String,
+        minlength: 11,
+        maxlength:11,
+        required: true,
     },
     tokens: [{
         access: {
@@ -52,7 +53,8 @@ const UserSchema = new mongoose.Schema({
 UserSchema.methods.toJSON = function () {
     var user = this;
     var userObj = user.toObject();
-    return { _id: userObj._id, email: userObj.email }
+    var { email, contact, _id, userImg, name } = userObj
+    return { email, contact, _id, userImg, name }
 }
 
 // Hashing Of Password
@@ -90,19 +92,43 @@ UserSchema.statics.findByCredentials = function (email, password) {
     })
 }
 
+UserSchema.statics.findByToken = function (token) {
+    var User = this;
+    var decoded;
+    try {
+        decoded = jwt.verify(token, "17899")
+    } catch (error) {
+        return Promise.reject();
+    }
+    return User.findOne({
+        "_id": decoded._id,
+        "tokens.token": token,
+        "tokens.access": "auth"
+    })
+}
 
 UserSchema.methods.getAuthToken = function () {
     var user = this;
     var access = 'auth';
     var token = jwt.sign({ _id: user._id.toHexString(), access }, '17899').toString();
-    user.tokens.push({ access, token })
+    user.tokens = [{ access, token }];
     return user.save().then(() => {
         return token
     })
 
 }
 
+UserSchema.methods.removeToken = function (token) {
+    var user = this;
+    return user.update({
+        $pull: {
+            tokens: {
+                token: token
+            }
+        }
+    })
 
+}
 
 
 
