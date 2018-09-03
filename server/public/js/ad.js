@@ -44,69 +44,70 @@ if (page == 'index' || page == '') {
     initiateLoader(`${page.toUpperCase()}List`)
 }
 function authUser() {
-        if (token) {
-            if (document.querySelector("#logIn")) {
-                document.querySelector("#logIn").style.display = 'none';
-            }
-            document.querySelector('#user').innerHTML = `
+    if (token) {
+        if (document.querySelector("#logIn")) {
+            document.querySelector("#logIn").style.display = 'none';
+        }
+        document.querySelector('#user').innerHTML = `
         <div class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>
         `
-            fetch('/auth', {
-                headers: {
-                    "x-auth": token
-                }
+        fetch('/auth', {
+            headers: {
+                "x-auth": token
+            }
+        })
+            .then((res) => res.json())
+            .then((userData) => {
+                var HTML = "";
+                crrUserImg = userData.userImg;
+                crrUserName = userData.name;
+                HTML += createUserTray(userData);
+                crrUserData = userData;
+                document.querySelector('#user').innerHTML = HTML;
             })
-                .then((res) => res.json())
-                .then((userData) => {
-                    var HTML = "";
-                    crrUserImg = userData.userImg;
-                    crrUserName = userData.name;
-                    HTML += createUserTray(userData);
-                    crrUserData = userData;
-                    document.querySelector('#user').innerHTML = HTML;
-                })
-            // switch (page) {
-            //     case "fav":
-            //         fetchFavAd(userId)
-            //         break;
-            //     case "myAds":
-            //         fetchMyAd("mobiles");
-            //         fetchMyAd("cars");
-            //         fetchMyAd("bikes")
-            //         fetchMyAd("electronicsAppliances");
-            //         fetchMyAd("furniture");
-            //         fetchMyAd("realEstate");
-            //         break;
-            //     case "notification":
-            //         var cat = JSON.parse(localStorage.getItem('category'));
-            //         var key = JSON.parse(localStorage.getItem('productKey'));
-            //         if (cat && key) {
-            //             getNotification(userId, cat, key)
-            //             break;
-            //         }
-            //     case "buy":
-            //         getChat(userId)
-            //         break;
-            // }
+        // switch (page) {
+        //     case "fav":
+        //         fetchFavAd(userId)
+        //         break;
+        //     case "myAds":
+        //         fetchMyAd("mobiles");
+        //         fetchMyAd("cars");
+        //         fetchMyAd("bikes")
+        //         fetchMyAd("electronicsAppliances");
+        //         fetchMyAd("furniture");
+        //         fetchMyAd("realEstate");
+        //         break;
+        //     case "notification":
+        //         var cat = JSON.parse(localStorage.getItem('category'));
+        //         var key = JSON.parse(localStorage.getItem('productKey'));
+        //         if (cat && key) {
+        //             getNotification(userId, cat, key)
+        //             break;
+        //         }
+        //     case "buy":
+        //         getChat(userId)
+        //         break;
+        // }
 
-            // messaging.requestPermission()
-            //     .then(() => {
-            //         console.log("Permission Granted");
-            //         return messaging.getToken()
-            //     }).then((token) => {
-            //         console.log(token);
-            //         database.ref(`tokens/${userId}`).set({
-            //             token: token
-            //         })
-            //     })
-            // messaging.onMessage(function (payload) {
-            //     console.log('payload', payload);
-            // })
-        } else {
-            // No user is signed in.
-            if (page === 'post-ad' || page === 'fav' || page === 'notification' || page === 'myAds' || page === 'buy') {
-                location.href = 'login.html'
-            }  
+        // messaging.requestPermission()
+        //     .then(() => {
+        //         console.log("Permission Granted");
+        //         return messaging.getToken()
+        //     }).then((token) => {
+        //         console.log(token);
+        //         database.ref(`tokens/${userId}`).set({
+        //             token: token
+        //         })
+        //     })
+        // messaging.onMessage(function (payload) {
+        //     console.log('payload', payload);
+        // })
+    } else {
+        // No user is signed in.
+        if (page === 'post-ad' || page === 'fav' || page === 'notification' || page === 'myAds' || page === 'buy') {
+            location.href = 'login.html'
+        }
+    }
 }
 //createUserTray********************
 function createUserTray(userData) {
@@ -146,7 +147,7 @@ function createMsg(status, message) {
     document.body.appendChild(p);
     setTimeout(function () {
         document.querySelector("#infoMsg").classList += 'animated fadeOutUp'
-    }, (4000))
+    }, (3000))
 }
 
 //imageShow****************
@@ -261,4 +262,71 @@ function signOut() {
         localStorage.removeItem("_t")
         location.reload();
     })
+}
+
+//**********************Post-Ad******************//
+function postAd() {
+    createMsg("primary", "processing Given Data")
+    var formData = new FormData(document.querySelector("#postForm"));
+    // var item = database.ref(`ads/catogaries/${formData.get('category')}`).push()
+    // var productKey = item.key;
+    var img = document.querySelector('#photoSelect').files[0]
+    if (!img) {
+        createMsg("danger", "Image Is Required");
+        return false
+    }
+    storage.ref(`adsImg/${formData.get('category')}/${img.name + Math.random()}`).put(img)
+        .then((snapShot) => {
+            return snapShot.ref.getDownloadURL();
+        })
+        .then((url) => {
+            fetch('/post-ad.html', {
+                method: "POST",
+                headers: {
+                    "Accept": 'application/json',
+                    "Content-type": 'application/json',
+                    "x-auth": token
+                },
+                body: JSON.stringify({
+                    category: formData.get("category"),
+                    src: url,
+                    adDate: (new Date()).toDateString(),
+                    price: formData.get("price"),
+                    model: formData.get('model'),
+                    title: formData.get("title"),
+                    description: formData.get("description")
+                })
+            }).then((res) => {
+                return res.json()
+            }).then((result) => {
+                console.log(result);
+                if (!result.errors) {
+                    // .then(() => {
+                    //     database.ref("notifications/notification").set({
+                    //         posterName: crrUserName,
+                    //         productImg: url,
+                    //         category: formData.get("category"),
+                    //         msgDate: (new Date()).toLocaleDateString(),
+                    //         msgTime: (new Date()).toLocaleTimeString(),
+                    //     })
+                    // })
+                    createMsg("success", "Posted Successfully")
+                    document.querySelector("#postForm").reset();
+                    document.querySelector('#picShow').src = 'images/upload.png'
+                }else{
+                    throw result
+                }
+            }).catch((err) => {
+                var errors = err.errors;
+                for (var err in errors) {
+                    createMsg('danger', err + ' : ' + errors[err].message)
+                    console.log("err:", err)
+                }
+            })
+        })
+        .catch((err) => {
+            console.log(err);
+            createMsg("danger", err.message)
+        })
+
 }

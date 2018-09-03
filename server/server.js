@@ -4,6 +4,7 @@ const hbs = require('hbs');
 const path = require('path');
 const bodyParser = require('body-parser');
 const { User } = require('./db/models/user')
+const { Ad } = require('./db/models/ad')
 const { authenticate } = require("./middleware/authenticate")
 const app = express();
 const PORT = process.env.PORT || 786
@@ -39,7 +40,7 @@ app.post('/register.html', (req, res) => {
         userImg: req.body.userImg
     })
     user.save().then((user) => {
-        return res.status(201).send(user)
+        res.status(201).send(user)
     }).catch((err) => {
         if (err.code == 11000) {
             res.status(406).send({
@@ -73,22 +74,22 @@ app.post('/login.html', (req, res) => {
 })
 
 app.get('/bikes.html', (req, res) => {
-    res.render('ad.hbs',{page:"bikes".toUpperCase()})
+    res.render('ad.hbs', { page: "bikes".toUpperCase() })
 })
 app.get('/electronicsAppliances.html', (req, res) => {
-    res.render('ad.hbs',{page:"electronicsAppliances".toUpperCase()})
+    res.render('ad.hbs', { page: "electronicsAppliances".toUpperCase() })
 })
 app.get('/cars.html', (req, res) => {
-    res.render('ad.hbs',{page:"cars".toUpperCase()})
+    res.render('ad.hbs', { page: "cars".toUpperCase() })
 })
 app.get('/mobiles.html', (req, res) => {
-    res.render('ad.hbs',{page:"mobiles".toUpperCase()})
+    res.render('ad.hbs', { page: "mobiles".toUpperCase() })
 })
 app.get('/realEstate.html', (req, res) => {
-    res.render('ad.hbs',{page:"realEstate".toUpperCase()})
+    res.render('ad.hbs', { page: "realEstate".toUpperCase() })
 })
 app.get('/furniture.html', (req, res) => {
-    res.render('ad.hbs',{page:"furniture".toUpperCase()})
+    res.render('ad.hbs', { page: "furniture".toUpperCase() })
 })
 app.get('/buy.html', (req, res) => {
     res.render('buy.hbs')
@@ -109,12 +110,24 @@ app.get('/myAds.html', (req, res) => {
 //LOGOUT_ROUTE
 app.get('/logout', authenticate, (req, res) => {
     req.user.removeToken(req.token).then(() => {
-        return res.status(200).send();
+        res.status(200).send();
     }).catch(() => {
-        return res.status(400).send()
+        res.status(400).send()
     })
 })
-
+//POST_AD**********************************
+app.post('/post-ad.html', authenticate, (req, res) => {
+    console.log(req.body);
+    req.body.sellerId = req.user._id;
+    req.body.contact = req.user.contact;
+    var { contact, title, description, price, model, adDate, sellerId, category, src } = req.body;
+    var ad = new Ad({ contact, title, description, price, model, adDate, sellerId, category, src })
+    ad.save().then((ad) => {
+        res.status(201).send(ad)
+    }).catch((err) => {
+        res.status(400).send(err)
+    })
+})
 
 
 
