@@ -128,10 +128,31 @@ app.post('/post-ad.html', authenticate, (req, res) => {
         res.status(400).send(err)
     })
 })
+//GetAd****************
+// app.get('/getAd', (req, res) => {
+//     console.log(req.header("x-auth"));
+// })
+//INDEX.HTML/ADS
+app.get('/index.html/getAds', (req, res) => {
+    Ad.find().then((result) => {
+        let ads = [];
+        for (let i = result.length - 1; i >= result.length - 9; i--) {
+            ads.push(result[i])
+        }
+        res.status(200).send(ads)
+    }).catch((err) => {
+        res.status(404).send(err);
+    })
+})
+// CATEGORY/ADS
 
-
-
-
+app.get('/getCategoryAds/:category', (req, res) => {
+    Ad.find({ category: req.params.category }).then((ads) => {
+        res.status(200).send(ads)
+    }).catch((err) => {
+        res.status(404).send();
+    })
+})
 
 
 

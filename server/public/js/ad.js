@@ -7,41 +7,18 @@ try {
     var storage = firebase.storage();
 } catch (e) {
 }
-//LOADERS****************
-function initiateLoader(list) {
-    console.log(list);
-    var list = document.querySelector(`#${list}`);
-    if (list) {
-        var div = document.createElement('div');
-        div.className = 'lds-facebook loader'
-        div.innerHTML = `
-       <div></div><div></div><div></div>
-       `
-        list.appendChild(div);
-    }
-}
-function removeLoader() {
-    if (document.querySelector('.loader')) {
-        if (document.querySelector(`#indexLoader`)) {
-            document.querySelector(`#indexLoader`).removeChild(document.querySelector('.loader'))
-        } else if (document.querySelector(`#${category}List`)) {
-            document.querySelector(`#${category}List`).removeChild(document.querySelector('.loader'))
-        }
-    }
-}
+
 //*******************Authentication*********//
 var page = location.href.split("/").pop().split(".")[0]
 if (page == 'login' || page == 'register') {
 } else {
     authUser();
 }
+initiateLoader();
 if (page == 'index' || page == '') {
-    initiateLoader('indexLoader');
-    // fetchAds('mobiles')
-    // fetchAds('cars')
-    // fetchAds('bikes')
+    // fetchIndexAds();
 } else {
-    initiateLoader(`${page.toUpperCase()}List`)
+    // initiateLoader(`${page.toUpperCase()}List`)
 }
 function authUser() {
     if (token) {
@@ -109,60 +86,151 @@ function authUser() {
         }
     }
 }
-//createUserTray********************
-function createUserTray(userData) {
-    return `
-            <div>
-            <div class='displayBoxImg animated fadeInRight'>
-            <a href='JavaScript:void(0)' id='userLink' style='display:block' >
-            <img src = "${userData.userImg}" title=${userData.name} style='margin-top:5px;' alt = "user" id = 'activeUserImg'/></a>
-            </div>
-            <div class='displayBox animated fadeInRight'>
-            <a href = 'buy.html' title='Messages'><i class="fas fa-shopping-cart fa-lg"></i></a>
-            </div>
-            <div class='displayBox animated fadeInRight'>
-            <a href = 'myAds.html' title='My Ads'><i class="fa fa-list fa-lg"></i></a>
-            </div>
-            <div class='displayBox animated fadeInRight'>
-            <a href = 'fav.html' title='My Favourites'><i class="fa fa-star fa-lg"></i></a>
-            </div>
-            <div class='displayBox animated fadeInRight'>
-            <a href = 'JavaScript:void(0)' title='Sign Out' onclick='signOut()'><i class="fas fa-power-off fa-lg"></i></a>
-            </div>
-            </div>
-            
-            `
+
+//**************************Ad Creators**********************//
+
+// function createDefaultAd(category) {
+//     var list = document.querySelector(`#${category}List`)
+//     if (list) {
+//         fetchData(category)
+//             .then((ads) => {
+//                 var HTML = "";
+//                 for (var ad in ads) {
+//                     HTML += createAd(ads[ad])
+//                 }
+//                 removeLoader(`#${category}List`)
+//                 list.innerHTML = HTML;
+//             })
+//     }
+// }
+//**************************INDEX/ADS********************//
+function fetchIndexAds() {
+    fetch('/index.html/getAds').then((res) => {
+        return res.json();
+    }).then((ads) => {
+        var HTML = "";
+        for (var i in ads) {
+            var div = document.createElement('div');
+            div.className = `animated fadeInRight`
+            div.innerHTML = createAd(ads[i])
+            if (i < 3) {
+                document.querySelector('#list1').appendChild(div)
+            }
+            else if (i >= 3 && i < 6) {
+                document.querySelector('#list2').appendChild(div)
+            }
+            else if (i >= 6 && i < 9) {
+                document.querySelector('#list3').appendChild(div)
+            }
+        }
+        removeLoader(`#indexLoader`)
+    })
 }
-//CreateMsg*****************
-function createMsg(status, message) {
-    if (document.querySelector('#infoMsg')) {
-        document.body.removeChild(document.querySelector('#infoMsg'));
+//********************Category/Ads***********************//
+fetchCategoryAds(page)
+function fetchCategoryAds(page) {
+    if (!document.querySelector(`#${page.toUpperCase()}List`)) {
+        return;
     }
-    var p = document.createElement("p");
-    p.className = `infoMsg ${status} animated fadeInDown`
-    p.id = 'infoMsg';
-    p.setAttribute('align', 'center')
-    p.innerHTML = `
-    <strong>${message}</strong>`
-    document.body.appendChild(p);
-    setTimeout(function () {
-        document.querySelector("#infoMsg").classList += 'animated fadeOutUp'
-    }, (3000))
+    console.log(page, document.querySelector(`#${page.toUpperCase()}List`));
+
+    fetch(`/getCategoryAds/${page}`).then((res) => {
+        return res.json()
+    }).then((ads) => {
+        console.log(ads);
+        console.log("WORKING");
+        if (!ads.length) {
+            console.log("WORKING");
+            document.querySelector(`#${page.toUpperCase()}List`).innerHTML = "<strong>NO AD FOR THIS CATEGORY YET</strong>"
+            return;
+        }
+        var HTML = "";
+        for (var i in ads) {
+            HTML += createAd(ads[i])
+        }
+        document.querySelector(`#${page.toUpperCase()}List`).innerHTML = HTML
+    })
 }
 
-//imageShow****************
 
-function showImg(imageView, imageReader) {
-    var picPreview = document.querySelector(`#${imageView}`);
-    var inputFile = document.querySelector(`#${imageReader}`).files[0];
-    var reader = new FileReader();
-    reader.addEventListener("load", function () {
-        picPreview.src = reader.result;
-    }, false);
-    if (inputFile) {
-        reader.readAsDataURL(inputFile);
+
+
+
+
+
+
+
+
+
+
+//**********************Post-Ad******************//
+function postAd() {
+    createMsg("primary", "processing Given Data")
+    var formData = new FormData(document.querySelector("#postForm"));
+    // var item = database.ref(`ads/catogaries/${formData.get('category')}`).push()
+    // var productKey = item.key;
+    var img = document.querySelector('#photoSelect').files[0]
+    if (!img) {
+        createMsg("danger", "Image Is Required");
+        return false
     }
+    storage.ref(`adsImg/${formData.get('category')}/${img.name + Math.random()}`).put(img)
+        .then((snapShot) => {
+            return snapShot.ref.getDownloadURL();
+        })
+        .then((url) => {
+            fetch('/post-ad.html', {
+                method: "POST",
+                headers: {
+                    "Accept": 'application/json',
+                    "Content-type": 'application/json',
+                    "x-auth": token
+                },
+                body: JSON.stringify({
+                    category: formData.get("category"),
+                    src: url,
+                    adDate: (new Date()).toDateString(),
+                    price: formData.get("price"),
+                    model: formData.get('model'),
+                    title: formData.get("title"),
+                    description: formData.get("description")
+                })
+            }).then((res) => {
+                return res.json()
+            }).then((result) => {
+                console.log(result);
+                if (!result.errors) {
+                    // .then(() => {
+                    //     database.ref("notifications/notification").set({
+                    //         posterName: crrUserName,
+                    //         productImg: url,
+                    //         category: formData.get("category"),
+                    //         msgDate: (new Date()).toLocaleDateString(),
+                    //         msgTime: (new Date()).toLocaleTimeString(),
+                    //     })
+                    // })
+                    createMsg("success", "Posted Successfully")
+                    document.querySelector("#postForm").reset();
+                    document.querySelector('#picShow').src = 'images/upload.png'
+                } else {
+                    throw result
+                }
+            }).catch((err) => {
+                var errors = err.errors;
+                for (var err in errors) {
+                    createMsg('danger', err + ' : ' + errors[err].message)
+                    console.log("err:", err)
+                }
+            })
+        })
+        .catch((err) => {
+            console.log(err);
+            createMsg("danger", err.message)
+        })
+
 }
+//***************************UserCreation And Login************************//
+
 //****************************SignUp*******************//
 function signUpUser() {
     createMsg("primary", "Processing Your Information")
@@ -263,70 +331,148 @@ function signOut() {
         location.reload();
     })
 }
+//
+//******************************global***********************//
 
-//**********************Post-Ad******************//
-function postAd() {
-    createMsg("primary", "processing Given Data")
-    var formData = new FormData(document.querySelector("#postForm"));
-    // var item = database.ref(`ads/catogaries/${formData.get('category')}`).push()
-    // var productKey = item.key;
-    var img = document.querySelector('#photoSelect').files[0]
-    if (!img) {
-        createMsg("danger", "Image Is Required");
-        return false
+
+
+
+
+
+
+//***************************ReUseAbles***************************//
+//***************************ReUseAbles***************************//
+//***************************ReUseAbles***************************//
+//***************************ReUseAbles***************************//
+//***************************ReUseAbles***************************//
+//***************************ReUseAbles***************************//
+//***************************ReUseAbles***************************//
+
+
+
+
+
+//LOADERS****************
+function initiateLoader() {
+    var list = document.querySelector(`.load`);
+    if (list) {
+        var div = document.createElement('div');
+        div.className = 'lds-facebook loader'
+        div.innerHTML = `
+       <div></div><div></div><div></div>
+       `
+        list.appendChild(div);
     }
-    storage.ref(`adsImg/${formData.get('category')}/${img.name + Math.random()}`).put(img)
-        .then((snapShot) => {
-            return snapShot.ref.getDownloadURL();
-        })
-        .then((url) => {
-            fetch('/post-ad.html', {
-                method: "POST",
-                headers: {
-                    "Accept": 'application/json',
-                    "Content-type": 'application/json',
-                    "x-auth": token
-                },
-                body: JSON.stringify({
-                    category: formData.get("category"),
-                    src: url,
-                    adDate: (new Date()).toDateString(),
-                    price: formData.get("price"),
-                    model: formData.get('model'),
-                    title: formData.get("title"),
-                    description: formData.get("description")
-                })
-            }).then((res) => {
-                return res.json()
-            }).then((result) => {
-                console.log(result);
-                if (!result.errors) {
-                    // .then(() => {
-                    //     database.ref("notifications/notification").set({
-                    //         posterName: crrUserName,
-                    //         productImg: url,
-                    //         category: formData.get("category"),
-                    //         msgDate: (new Date()).toLocaleDateString(),
-                    //         msgTime: (new Date()).toLocaleTimeString(),
-                    //     })
-                    // })
-                    createMsg("success", "Posted Successfully")
-                    document.querySelector("#postForm").reset();
-                    document.querySelector('#picShow').src = 'images/upload.png'
-                }else{
-                    throw result
-                }
-            }).catch((err) => {
-                var errors = err.errors;
-                for (var err in errors) {
-                    createMsg('danger', err + ' : ' + errors[err].message)
-                    console.log("err:", err)
-                }
-            })
-        })
-        .catch((err) => {
-            console.log(err);
-            createMsg("danger", err.message)
-        })
+}
+function removeLoader() {
+    if (document.querySelector('.loader')) {
+        document.querySelector('.load').removeChild(document.querySelector('.loader'))
+        // if (document.querySelector(`#indexLoader`)) {
+        //     document.querySelector(`#indexLoader`).removeChild(document.querySelector('.loader'))
+        // } else if (document.querySelector(`#${category}List`)) {
+        //     document.querySelector(`#${category}List`).removeChild(document.querySelector('.loader'))
+        // }
+    }
+}
 
+
+//createUserTray********************
+function createUserTray(userData) {
+    return `
+            <div>
+            <div class='displayBoxImg animated fadeInRight'>
+            <a href='JavaScript:void(0)' id='userLink' style='display:block' >
+            <img src = "${userData.userImg}" title=${userData.name} style='margin-top:5px;' alt = "user" id = 'activeUserImg'/></a>
+            </div>
+            <div class='displayBox animated fadeInRight'>
+            <a href = 'buy.html' title='Messages'><i class="fas fa-shopping-cart fa-lg"></i></a>
+            </div>
+            <div class='displayBox animated fadeInRight'>
+            <a href = 'myAds.html' title='My Ads'><i class="fa fa-list fa-lg"></i></a>
+            </div>
+            <div class='displayBox animated fadeInRight'>
+            <a href = 'fav.html' title='My Favourites'><i class="fa fa-star fa-lg"></i></a>
+            </div>
+            <div class='displayBox animated fadeInRight'>
+            <a href = 'JavaScript:void(0)' title='Sign Out' onclick='signOut()'><i class="fas fa-power-off fa-lg"></i></a>
+            </div>
+            </div>
+            
+            `
+}
+
+
+//CreateMsg*****************
+function createMsg(status, message) {
+    if (document.querySelector('#infoMsg')) {
+        document.body.removeChild(document.querySelector('#infoMsg'));
+    }
+    var p = document.createElement("p");
+    p.className = `infoMsg ${status} animated fadeInDown`
+    p.id = 'infoMsg';
+    p.setAttribute('align', 'center')
+    p.innerHTML = `
+    <strong>${message}</strong>`
+    document.body.appendChild(p);
+    setTimeout(function () {
+        document.querySelector("#infoMsg").classList += 'animated fadeOutUp'
+    }, (3000))
+}
+
+//imageShow****************
+
+function showImg(imageView, imageReader) {
+    var picPreview = document.querySelector(`#${imageView}`);
+    var inputFile = document.querySelector(`#${imageReader}`).files[0];
+    var reader = new FileReader();
+    reader.addEventListener("load", function () {
+        picPreview.src = reader.result;
+    }, false);
+    if (inputFile) {
+        reader.readAsDataURL(inputFile);
+    }
+}
+
+
+//********************Global-Ad-Creator*******************************//
+function createAd(data) {
+    var adData = JSON.stringify(data)
+    return `
+        <div class="col-sm-4 col-6  img-thumbnail cardDiv animated fadeIn" style='margin-bottom:5px;height:310px;'>
+		<div class="card ">
+			<div class="user-card-profile  text-center">
+				<img class="" style='width:200px;height:150px;' src="${data.src}" alt="">
+			</div>
+			<div class="designation m-t-27 m-b-27 text-center">
+				<h4> ${data.title}</h4>
+			</div>
+			<div class='adCont'>
+				<div class='col-sm-6 col-xs-6 text-left adDiv'>
+					<ul class='adUl'>
+						<li>
+							<i class="fas fa-money-check-alt"></i> Price</li>
+						<li>
+							<i class='fa fa-phone'></i> Contact</li>
+					</ul>
+				</div>
+				<div class='col-sm-6 col-xs-6 text-right adDiv'>
+					<ul class='adUl'>
+						<li>${data.price} PKR</li>
+						<li>${data.contact}</li>
+					</ul>
+				</div>
+				<div class=' text-center adDateData'>
+					<div class='col-sm-12 '>
+                        <i class="far fa-clock"></i> ${data.adDate}
+                    </div>
+                </div>
+					<div class='col-sm-12 detailBtn '>
+						<a href='JavaScript:void(0)' class='btn btn-success' onclick='showAd(${adData})'>View Details</a>
+                    </div>                    
+				</div>
+			</div>
+		</div>
+	</div>
+	</div>
+`
 }

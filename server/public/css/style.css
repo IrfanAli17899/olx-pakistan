@@ -3033,10 +3033,16 @@ span.adprice {
 .adCard{
 	background: whitesmoke;
 }
-#cardDiv{
-	margin-bottom:5px;
-	/* min-height:310px; */
+.cardDiv{
+	/* margin: 5px;
+
+	width: 250px; */
 }
+.adContainer{
+	text-align: center;
+	border: 1px solid red;
+}
+
 .ad1{
 	text-align: left;
 	display: inline-block;
