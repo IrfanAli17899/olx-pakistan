@@ -1,25 +1,25 @@
 var token = localStorage.getItem("_t");
-var userId;
-var crrUserImg;
-var crrUserName;
 var crrUserData;
+
 try {
     var storage = firebase.storage();
+    if (category) {
+        fetchCategoryAds(category)
+    }
 } catch (e) {
 }
 
 //*******************Authentication*********//
-var page = location.href.split("/").pop().split(".")[0]
+var page = location.href.split("/").pop().split(".")[0];
 if (page == 'login' || page == 'register') {
 } else {
     authUser();
 }
 initiateLoader();
 if (page == 'index' || page == '') {
-    // fetchIndexAds();
-} else {
-    // initiateLoader(`${page.toUpperCase()}List`)
+    fetchIndexAds();
 }
+
 function authUser() {
     if (token) {
         if (document.querySelector("#logIn")) {
@@ -35,36 +35,29 @@ function authUser() {
         })
             .then((res) => res.json())
             .then((userData) => {
-                var HTML = "";
-                crrUserImg = userData.userImg;
-                crrUserName = userData.name;
-                HTML += createUserTray(userData);
                 crrUserData = userData;
+                var HTML = "";
+                HTML += createUserTray(userData);
                 document.querySelector('#user').innerHTML = HTML;
+                switch (page) {
+                    //     case "fav":
+                    //         fetchFavAd(userId)
+                    // break;
+                    case "myAds":
+                        fetchMyAds(crrUserData._id)
+                        break;
+                    //     case "notification":
+                    //         var cat = JSON.parse(localStorage.getItem('category'));
+                    //         var key = JSON.parse(localStorage.getItem('productKey'));
+                    //         if (cat && key) {
+                    //             getNotification(userId, cat, key)
+                    //             break;
+                    //         }
+                    //     case "buy":
+                    //         getChat(userId)
+                    //         break;
+                }
             })
-        // switch (page) {
-        //     case "fav":
-        //         fetchFavAd(userId)
-        //         break;
-        //     case "myAds":
-        //         fetchMyAd("mobiles");
-        //         fetchMyAd("cars");
-        //         fetchMyAd("bikes")
-        //         fetchMyAd("electronicsAppliances");
-        //         fetchMyAd("furniture");
-        //         fetchMyAd("realEstate");
-        //         break;
-        //     case "notification":
-        //         var cat = JSON.parse(localStorage.getItem('category'));
-        //         var key = JSON.parse(localStorage.getItem('productKey'));
-        //         if (cat && key) {
-        //             getNotification(userId, cat, key)
-        //             break;
-        //         }
-        //     case "buy":
-        //         getChat(userId)
-        //         break;
-        // }
 
         // messaging.requestPermission()
         //     .then(() => {
@@ -127,38 +120,285 @@ function fetchIndexAds() {
     })
 }
 //********************Category/Ads***********************//
-fetchCategoryAds(page)
 function fetchCategoryAds(page) {
-    if (!document.querySelector(`#${page.toUpperCase()}List`)) {
+    if (!document.querySelector(`#${page}List`)) {
         return;
     }
-    console.log(page, document.querySelector(`#${page.toUpperCase()}List`));
-
-    fetch(`/getCategoryAds/${page}`).then((res) => {
+    fetch(`/getCategoryAds/${page.toLowerCase()}`).then((res) => {
         return res.json()
     }).then((ads) => {
-        console.log(ads);
-        console.log("WORKING");
         if (!ads.length) {
-            console.log("WORKING");
-            document.querySelector(`#${page.toUpperCase()}List`).innerHTML = "<strong>NO AD FOR THIS CATEGORY YET</strong>"
+            document.querySelector(`#${page}List`).innerHTML = "<strong>NO AD FOR THIS CATEGORY YET</strong>"
             return;
         }
         var HTML = "";
         for (var i in ads) {
             HTML += createAd(ads[i])
         }
-        document.querySelector(`#${page.toUpperCase()}List`).innerHTML = HTML
+        document.querySelector(`#${page}List`).innerHTML = HTML
     })
 }
 
+function searchCategory(category) {
+    if (category == -1) {
+        return;
+    }
+    location.href = `${category}.html`
+}
+function searchName(params) {
+    var keyword = params.value;
+    var HTML;
+    if (!keyword) {
+        return fetchCategoryAds(category)
+    }
 
+    HTML = `<h3>You Are Searching For "${keyword}"</h3>`
 
+    fetch(`/search/${category.toLowerCase()}/${keyword}`).then((res) => {
+        return res.json()
+    }).then((result) => {
+        if (!result.length) {
+            document.querySelector(`#${category.toUpperCase()}List`).innerHTML = `
+            ${HTML}
+            <p>Not Found</p>
+            `
+            return;
+        }
+        for (var i in result) {
+            HTML += createAd(result[i]);
+        }
+        document.querySelector(`#${category}List`).innerHTML = HTML
+    })
 
+}
 
+function fetchMyAds(id) {
+    var list = document.querySelector(`#myAdsList`)
+    fetch(`/myAds/${id}`, {
+        headers: {
+            'x-auth': token
+        }
+    }).then((res) => {
+        return res.json()
+    }).then((ads) => {
+        if (!ads.length) {
+            list.innerHTML = `<strong>Not Yet Posted</strong>`
+            return;
+        }
+        var HTML = "";
+        for (var i in ads) {
+            var data = ads[i];
+            var adData = JSON.stringify(data)
+            HTML += `
+                <div class="col-sm-4 col-6  img-thumbnail cardDiv animated fadeIn" style='' id='${i}'>
+                <div class="card ">
+                    <div class="user-card-profile  text-center">
+                        <img class="" style='width:200px;height:150px;' src="${data.src}" alt="">
+                    </div>
+                    <div class="designation m-t-27 m-b-27 text-center">
+                        <h4> ${data.title}</h4>
+                    </div>
+                    <div class='adCont'>
+                        <div class='col-sm-6 col-xs-6 text-left adDiv'>
+                            <ul class='adUl'>
+                                <li>
+                                    <i class="fas fa-money-check-alt"></i> Price</li>
+                                <li>
+                                    <i class='fa fa-phone'></i> Contact</li>
+                            </ul>
+                        </div>
+                        <div class='col-sm-6 col-xs-6 text-right adDiv'>
+                            <ul class='adUl'>
+                                <li>${data.price} PKR</li>
+                                <li>${data.contact}</li>
+                            </ul>
+                        </div>
+                        <div class=' text-center '>
+                            <div class='col-sm-12 adDateData '>
+                                <i class="far fa-clock"></i> ${data.adDate}
+                            </div>
+                            </div>
+                            <div class='text-center'>
+                            <div class='col-sm-6 '>
+                                <a href='JavaScript:void(0)' class='btn btn-info adBtn' onclick='showAd(${adData})'><i class="fas fa-eye"></i> View Details</a>
+                            </div>
+                            <div class='col-sm-6 '>
+                                <a href='JavaScript:void(0)' class='btn btn-success adBtn' onclick='notification("${data.category}","${data.productKey}")'><i class="fas fa-bell fa-lg"></i> Notifications</a>
+                            </div>
+                            <div class='col-sm-6 '>
+                            <a href='JavaScript:void(0)' class='btn btn-warning adBtn' onclick='editDetails(${adData})'><i class="far fa-edit"></i> Edit Details</a>
+                        </div>
+                        <div class='col-sm-6 '>
+                        <a href='JavaScript:void(0)' class='btn btn-danger adBtn' onclick="deleteAd('${data._id}',${i})"><i class="fa fa-trash" aria-hidden="true"></i> Delete</a>
+                        </div>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+        `
+        }
+        removeLoader()
+        list.innerHTML += HTML;
+    })
 
+}
 
+function deleteAd(id, i) {
+    fetch(`/deleteAd/${crrUserData._id}/${id}`, {
+        method: "DELETE",
+        headers: {
+            "x-auth": token
+        }
+    }).then((res) => {
+        return res.json()
+    }).then((ad) => {
+        document.querySelector('#myAdsList').removeChild(document.getElementById(`${i}`));
 
+    }).catch((err) => {
+        console.log(err);
+    })
+
+}
+
+function editDetails(data) {
+    console.log(data);
+    if (document.querySelector(`.editModalBox`)) {
+        document.querySelector(`.editModal`).classList += 'animated fadInUp';
+        document.body.removeChild(document.querySelector('.editModalBox'))
+    }
+    var div = document.createElement('div');
+    div.className = 'editModalBox'
+    div.innerHTML = `
+    <div class="editModal animated fadeInDown">
+    <div class="editHeader">
+        <h1>Edit Details</h1>
+        <button class="btn btn-danger editCloseBtn" onclick="closeEdit()">Close</button>
+    </div>
+    <div class="editMain">
+    <form action='javascript:void(0)' style='padding-bottom:10px;' onsubmit='newDetails(${JSON.stringify(data)})' id='editForm'>
+        <div>
+            <label for="title">Title*
+                <input type="text" name="title" id="title" value="${data.title}">
+            </label>
+        </div>
+        <div>
+            <label for="model">Model*
+                <input type="text" name="model" id="model" value="${data.model}">
+            </label>
+        </div>
+        <div>
+            <label for="description">Description*
+                <input type="text" name="description" id="description" value="${data.description}">
+            </label>
+        </div>
+        <div>
+            <label for="price">Price*
+                <input type="text" name="price" id="price" value="${data.price}">
+            </label>
+        </div>
+        <div>
+            <label for="productImage" id='pad'>
+                Image*
+                <div class="imgCon">
+                    <input type="file" name="photoSelect" style="display:none" onchange="showImg('picShow','photoSelect')" id="photoSelect">
+                    <div class="brwBox">
+                        <img src="${data.src}" class='pic' alt="" id="picShow">
+                        <div>
+                            <input type="button" class="btn btn-success brwBtn" style="width:150px;" name="" value="Browse" id="browse" onclick="document.querySelector('#photoSelect').click()">
+                        </div>
+                    </div>
+                </div>
+            </label>
+        </div>
+        <div class='text-center'>
+        <button typye='submit' class='btn editBtn'>Update</button>
+        </div>
+        </form>
+    </div>
+    <div class="editFooter text-center">
+        <img src="images/logo.png" width="200px;" alt="KHAREEDLO">
+    </div>
+</div>
+    `
+    document.body.appendChild(div);
+}
+function newDetails(data) {
+    console.log(data);
+    createMsg("primary", "processing Given Data")
+    var formData = new FormData(document.querySelector('#editForm'));
+    var item = {
+        price: formData.get("price"),
+        model: formData.get('model'),
+        title: formData.get("title"),
+        description: formData.get("description"),
+        adDate: data.adDate,
+        contact: data.contact,
+        category: data.category,
+        _id: data._id,
+        sellerId: data.sellerId
+    }
+    var img = document.querySelector('#photoSelect').files[0]
+    if (img) {
+        storage.ref(`adsImg/${data.category}/${img.name + Math.random()}`).put(document.querySelector('#photoSelect').files[0])
+            .then((snapShot) => {
+                return snapShot.ref.getDownloadURL();
+            })
+            .then((url) => {
+                item.src = url
+                return postEdit(item)
+            }).catch((err) => {
+                console.log(err);
+                createMsg("danger", err.message)
+            })
+    } else {
+        item.src = data.src
+        return postEdit(item)
+    }
+}
+function postEdit(item) {
+    console.log(item);
+    fetch(`/editPost/${item.sellerId}/${item._id}`, {
+        method: "PATCH",
+        headers: {
+            "x-auth": token,
+            "Content-type": 'application/json',
+            
+        },
+        body: JSON.stringify(item)
+    }).then((res) => {
+        return res.json()
+    }).then((result)=>{
+        console.log(result);
+        
+        createMsg("success", "Posted Successfully")
+        document.querySelector("#editForm").reset();
+        // document.querySelector('#picShow').src = 'images/upload.png'
+        location.reload()
+    })
+        // .then(() => {
+        //         database.ref("notifications/notification").set({
+        //             posterName: crrUserName,
+        //             productImg: url,
+        //             category: data.category,
+        //             msgDate: (new Date()).toLocaleDateString(),
+        //             msgTime: (new Date()).toLocaleTimeString(),
+        //         })
+        //     })
+        // })
+        .catch((err) => {
+            console.log(err);
+        })
+
+}
+function closeEdit() {
+    if (document.querySelector(`.editModalBox`)) {
+        document.body.removeChild(document.querySelector('.editModalBox'))
+        // document.querySelector(`.editModal`).classList += 'animated fadInUp';
+
+    }
+}
 
 
 

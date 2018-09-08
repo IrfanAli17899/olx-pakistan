@@ -3,6 +3,7 @@ const { mongoose } = require('./db/mongoose');
 const hbs = require('hbs');
 const path = require('path');
 const bodyParser = require('body-parser');
+const { ObjectId } = require('mongodb')
 const { User } = require('./db/models/user')
 const { Ad } = require('./db/models/ad')
 const { authenticate } = require("./middleware/authenticate")
@@ -77,19 +78,19 @@ app.get('/bikes.html', (req, res) => {
     res.render('ad.hbs', { page: "bikes".toUpperCase() })
 })
 app.get('/electronicsAppliances.html', (req, res) => {
-    res.render('ad.hbs', { page: "electronicsAppliances".toUpperCase() })
+    res.render('ad.hbs', { category: "electronicsAppliances".toUpperCase() })
 })
 app.get('/cars.html', (req, res) => {
-    res.render('ad.hbs', { page: "cars".toUpperCase() })
+    res.render('ad.hbs', { category: "cars".toUpperCase() })
 })
 app.get('/mobiles.html', (req, res) => {
-    res.render('ad.hbs', { page: "mobiles".toUpperCase() })
+    res.render('ad.hbs', { category: "mobiles".toUpperCase() })
 })
 app.get('/realEstate.html', (req, res) => {
-    res.render('ad.hbs', { page: "realEstate".toUpperCase() })
+    res.render('ad.hbs', { category: "realEstate".toUpperCase() })
 })
 app.get('/furniture.html', (req, res) => {
-    res.render('ad.hbs', { page: "furniture".toUpperCase() })
+    res.render('ad.hbs', { category: "furniture".toUpperCase() })
 })
 app.get('/buy.html', (req, res) => {
     res.render('buy.hbs')
@@ -155,17 +156,101 @@ app.get('/getCategoryAds/:category', (req, res) => {
 })
 
 
+//Search
+app.get('/search/:category/:keyword', (req, res) => {
+    var { keyword, category } = req.params;
+    Ad.find({ category }).then((result) => {
+        console.log(result);
+        var arr = result.filter((item) => {
+            return item.title.toLowerCase().indexOf(keyword.toLowerCase()) != -1 || item.description.toLowerCase().indexOf(keyword.toLowerCase()) != -1
+        })
+        res.send(arr)
+    }).catch((err) => {
+        res.send(err)
+    })
+})
 
 
+//MyAds
 
+app.get('/myAds/:id', authenticate, (req, res) => {
+    var { id } = req.params;
+    if (!ObjectId.isValid(id)) {
+        return res.status(404).send({
+            errors: {
+                id: "Invalid Id"
+            }
+        })
+    }
+    User.findOne({ "_id": id, "tokens.token": req.token }).then((user) => {
+        if (!user) {
+            return Promise.reject({
+                errors: {
+                    id: "No User Found Against This Id"
+                }
+            })
+        }
+    }).catch((err) => {
+        res.status(404).send(err)
+    })
+    Ad.find({ "sellerId": id }).then((result) => {
+        res.status(200).send(result)
+    })
+})
+app.delete('/deleteAd/:sellerId/:id', authenticate, (req, res) => {
+    var { sellerId, id } = req.params;
+    if (!ObjectId.isValid(sellerId) || !ObjectId.isValid(id)) {
+        return res.status(404).send({
+            errors: {
+                id: "Invalid Id"
+            }
+        })
+    }
+    User.findOne({ "_id": sellerId }).then((user) => {
+        if (!user) {
+            return Promise.reject({
+                errors: {
+                    id: "No User Found Against This Id"
+                }
+            })
+        }
+    }).catch((err) => {
+        res.status(404).send(err)
+    })
+    Ad.findOneAndRemove({ "_id": id, sellerId }).then((result) => {
+        res.status(200).send(result)
+    })
+})
 
-
-
-
-
-
-
-
+app.patch('/editPost/:sellerId/:id', authenticate, (req, res) => {
+    var { sellerId, id } = req.params;
+    var { contact, title, description, price, model, adDate, sellerId, category, src } = req.body;
+    console.log(contact, title, description, price, model, adDate, sellerId, category, src);
+    var ad = { contact, title, description, price, model, adDate, sellerId, category, src, _id: id }
+    if (!ObjectId.isValid(sellerId) || !ObjectId.isValid(id)) {
+        return res.status(404).send({
+            errors: {
+                id: "Invalid Id"
+            }
+        })
+    }
+    User.findOne({ "_id": sellerId }).then((user) => {
+        if (!user) {
+            return Promise.reject({
+                errors: {
+                    id: "No User Found Against This Id"
+                }
+            })
+        }
+    }).catch((err) => {
+        res.status(404).send(err)
+    })
+    Ad.findOneAndUpdate({ "_id": id, sellerId }, new Ad(ad)).then((result) => {
+        res.status(200).send(result)
+    }).catch((err) => {
+        res.send(err)
+    })
+})
 
 
 

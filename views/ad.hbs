@@ -2,7 +2,7 @@
 <html>
 
 <head>
-	<title>KHAREEDLO | {{page}}</title>
+	<title>KHAREEDLO | {{category}}</title>
 	<link rel="stylesheet" href="css/bootstrap.min.css">
 	<link href="css/style.css" rel="stylesheet" type="text/css" media="all" />
 	<link rel="stylesheet" href="css/animat.css">
@@ -57,42 +57,40 @@
 	<!-- Mobiles -->
 	<div class="total-ads main-grid-border">
 		<div class="container">
-			<form action="JavaScript:void(0)" onsubmit="searchStart()" id="searcForm" method="get">
-				<div class="select-box text-center">
-					<div class="browse-category ads-list">
-						<label>Browse Categories</label>
-						<select class="selectpicker show-tick" name="category" data-live-search="true">
-							<option data-tokens="Mobiles" value="mobiles" selected="selected">Mobiles</option>
-							<option data-tokens="Electronics & Appliances" value="electronicsAppliances">Electronics & Appliances</option>
-							<option data-tokens="Cars" value="cars">Cars</option>
-							<option data-tokens="Bikes" value="bikes">Bikes</option>
-							<option data-tokens="Furniture" value="furniture">Furniture</option>
-							<option data-tokens="Real Estate" value="realEstate">Real Estate</option>
-						</select>
+			<div class="select-box text-center">
+				<div class="browse-category ads-list">
+					<label>Browse Categories</label>
+					<select name="category" onchange="searchCategory(this.value)">
+						<option value="-1">Select-Category</option>
+						<option value="mobiles" >Mobiles</option>
+						<option value="electronicsAppliances">Electronics & Appliances</option>
+						<option value="cars">Cars</option>
+						<option value="bikes">Bikes</option>
+						<option value="furniture">Furniture</option>
+						<option value="realEstate">Real Estate</option>
+					</select>
 					</div>
-					<div class="clearfix"></div>
-				</div>
-			</form>
+				<div class="clearfix"></div>
+			</div>
 			<ol class="breadcrumb" style="margin-bottom: 5px;">
 				<li>
 					<a href="index.html">Home</a>
 				</li>
-				<li class="active">{{page}}</li>
+				<li class="active">{{category}}</li>
 			</ol>
 			<div class="ads-grid">
 				<div class="side-bar col-md-4">
 					<div class="search-hotel">
 						<h3 class="sear-head">Name contains</h3>
-						<form action="JavaScript:void(0)" id="nameSearchForm" onsubmit="searchByName()">
-							<input type="text" name="keyName" value="Product name..." onfocus="this.value = '';" onblur="if (this.value == '') {this.value = 'Product name...';}"
-							 required="">
-							<input type="submit" value=" ">
-						</form>
+						{{!-- <form action="JavaScript:void(0)" id="nameSearchForm" onsubmit="searchByName()"> --}}
+							<input type="text" name="keyName" onkeyup="searchName(this)" id="searchBox" onkeydown="searchName(this)" >
+							
+						{{!-- </form> --}}
 					</div>
 				</div>
 				<div class="ads-display col-md-8">
 					<div>
-						<div class="row" id="{{page}}List" class="load" style="padding:0px;text-align:center">
+						<div class="row" id="{{category}}List" class="load" style="padding:0px;text-align:center">
 
 						</div>
 					</div>
@@ -188,6 +186,7 @@
 			messagingSenderId: "716478877040"
 		};
 		firebase.initializeApp(config);
+		const category = '{{ category }}'
 	</script>
 	<script src="js/ad.js"></script>
 
