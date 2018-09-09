@@ -50,7 +50,6 @@ app.post('/register.html', (req, res) => {
                         message: "Email Adress Already Exists"
                     }
                 },
-
             })
         }
         res.status(406).send(err)
@@ -107,7 +106,9 @@ app.get('/post-ad.html', (req, res) => {
 app.get('/myAds.html', (req, res) => {
     res.render('myAds.hbs')
 })
-
+app.get('/showAd.html', (req, res) => {
+    res.render('showAd.hbs')
+})
 //LOGOUT_ROUTE
 app.get('/logout', authenticate, (req, res) => {
     req.user.removeToken(req.token).then(() => {
@@ -118,7 +119,6 @@ app.get('/logout', authenticate, (req, res) => {
 })
 //POST_AD**********************************
 app.post('/post-ad.html', authenticate, (req, res) => {
-    console.log(req.body);
     req.body.sellerId = req.user._id;
     req.body.contact = req.user.contact;
     var { contact, title, description, price, model, adDate, sellerId, category, src } = req.body;
@@ -160,7 +160,6 @@ app.get('/getCategoryAds/:category', (req, res) => {
 app.get('/search/:category/:keyword', (req, res) => {
     var { keyword, category } = req.params;
     Ad.find({ category }).then((result) => {
-        console.log(result);
         var arr = result.filter((item) => {
             return item.title.toLowerCase().indexOf(keyword.toLowerCase()) != -1 || item.description.toLowerCase().indexOf(keyword.toLowerCase()) != -1
         })
@@ -225,7 +224,6 @@ app.delete('/deleteAd/:sellerId/:id', authenticate, (req, res) => {
 app.patch('/editPost/:sellerId/:id', authenticate, (req, res) => {
     var { sellerId, id } = req.params;
     var { contact, title, description, price, model, adDate, sellerId, category, src } = req.body;
-    console.log(contact, title, description, price, model, adDate, sellerId, category, src);
     var ad = { contact, title, description, price, model, adDate, sellerId, category, src, _id: id }
     if (!ObjectId.isValid(sellerId) || !ObjectId.isValid(id)) {
         return res.status(404).send({
@@ -251,6 +249,63 @@ app.patch('/editPost/:sellerId/:id', authenticate, (req, res) => {
         res.send(err)
     })
 })
+
+
+app.patch('/addToFav/:productId', authenticate, (req, res) => {
+    console.log("Hello World");
+
+    var { productId } = req.params;
+    var { token, user } = req;
+    User.findOne({ "_id": user._id, "tokens.token": token }).then((user) => {
+        var same = user.fav.filter((item) => {
+            return item._id === productId
+        })
+        if (same.length) {
+            return res.send({
+                message: "Already Added To Favourites"
+            })
+        }
+        user.fav.push({ _id: productId });
+        user.save().then((user) => {
+            return res.send({
+                message: "Added To Favourites"
+            })
+        }).catch((err) => {
+            console.log(err);
+        })
+    })
+
+})
+
+app.get('/getFav/:id', authenticate, (req, res) => {
+    var { id } = req.params;
+    if (!ObjectId.isValid(id)) {
+        return res.status(404).send({
+            errors: {
+                id: "Invalid Id"
+            }
+        })
+    }
+    Ad.findOne({ "_id": id }).then((result) => {
+        if(result){
+            res.status(200).send(result)
+        }
+    })
+})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

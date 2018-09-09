@@ -4,6 +4,13 @@ body{
 	font-family: 'Open Sans', sans-serif;
 	background:#fff;
 }
+html,body{
+	height: 88%;
+	width: 100%;
+}
+
+
+
 body a{
     transition:0.5s all;
 	-webkit-transition:0.5s all;
@@ -217,11 +224,11 @@ label{
 }
 .postBtn{
 display: block;
-margin-bottom: 20px;
+margin-bottom: 10px;
 }
 @media screen and (max-width: 768px) {
 .main-banner{
-	background-position: right 0px;	
+	background-position: right -20px;	
 }
 }
 .banner a {
@@ -924,6 +931,68 @@ p.creating{
     -o-transition: .5s all;
     -ms-transition: .5s all;
 	}
+
+
+
+
+.adDetails{
+
+	display: inline-block;
+	width: 50%;
+	padding:2px 10px 2px 20px; 
+}
+
+.des{
+	text-align: center;
+	margin-bottom: 10px;
+}
+
+
+#adImg{
+	max-height: 450px;
+	min-height: 350px;
+	max-width:550px;
+	border: 10px solid white
+}
+.right,.left{
+	margin-bottom: 10px;
+	width: 50%;
+	display: inline-block;
+
+}
+.left{
+	float: left;
+	text-align: left;
+}
+.right{
+	float: right;
+	text-align: right;	
+}
+@media (max-width:768px){
+	#adImg{
+		max-width:100%;
+	} 
+	.adDetails{
+		width: 100%;
+	}
+}
+
+@media (max-width:550px){
+	#adImg{
+		max-width:100%;
+	} 
+	.adDetails{
+		width: 100%;
+	}
+}
+.newBtn{
+	margin-top: 20px;
+}
+.newBtn button {
+	width: 120px;
+	text-align: center;
+}
+
 .sign-up input[type="submit"]:hover{
 	background:#f3c500;
 	color:#fff;
@@ -3325,17 +3394,7 @@ text-decoration: none;
 .detail>div{
 	margin-top: 10px;
 }
-.left{
-	float: left;
-width: 50%;
-	
-	text-align: left;
-}
-.right{
-	width: 50%;
-	float: right;
-	text-align: right;	
-}
+
 .center{
 	text-align: center;
 }
@@ -4004,7 +4063,7 @@ label {
 		font-size: 16px;
 	}
 	.main-banner {
-		min-height: 280px;
+		min-height: 290px;
 		padding: 60px 0 0 0;
 	}
 	.focus-image i {
@@ -4201,7 +4260,7 @@ label {
 }
 @media (max-width: 991px){
 	.main-banner {
-		min-height: 260px;
+		/* min-height: 260px; */
 		padding: 55px 0 0 0;
 	}
 	.banner h1 {
@@ -4660,10 +4719,6 @@ label {
 	/*--typo--*/
 }
 @media (max-width: 480px){
-	.main-banner,.banner {
-		min-height: 180px;
-		padding: 30px 0 0 0;
-	}
 	.focus-image i {
 		font-size: 35px;
 		width: 75px;
@@ -5042,7 +5097,9 @@ label {
 		padding: 3px 0 5px;
 	}
 	.main-banner, .banner {
-		padding: 15px 0 0 0;
+		background-size:100%; 
+		/* min-height: 300px; */
+		/* background-position: left 0 right 0; */
 	}
 	.focus-grid {
 		width: 50%;
@@ -5261,10 +5318,18 @@ label {
 	.sitemap-region ul {
 		margin-left: 0;
 	}
+	.main-banner, .banner {
+		min-height: 150px;
+		background-position:right -10px; 
+	}
 }
 @media (max-width: 320px){
 	.main-banner, .banner {
-		min-height: 175px;
+		min-height: 110px;
+		background-position:right -10px; 
+	}
+	.postBtn{
+		font-size: 2px;
 	}
 	.logo {
 		float: left;
@@ -5273,8 +5338,11 @@ label {
 	}
 	.header-right {
 		width: 100%;
-		border: 1px solid rebeccapurple;
+		/* border: 1px solid rebeccapurple; */
 		text-align: center;
+	}
+	.displayBox{
+		margin: 0;
 	}
 	a.account {
 		font-size: 14px;

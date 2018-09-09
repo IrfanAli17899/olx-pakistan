@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { Ad } = require('./ad')
 
 const UserSchema = new mongoose.Schema({
     name: {
@@ -32,10 +33,10 @@ const UserSchema = new mongoose.Schema({
         type: String,
         default: 'images/userImg.jpg'
     },
-    contact:{
-        type:String,
+    contact: {
+        type: String,
         minlength: 11,
-        maxlength:11,
+        maxlength: 11,
         required: true,
     },
     tokens: [{
@@ -47,14 +48,26 @@ const UserSchema = new mongoose.Schema({
             type: String,
             required: true
         }
-    }]
+    }],
+    fav: {
+        type: Array,
+        _id: {
+            type: String,
+            unique: true
+        },
+        default: []
+    },
+
+
+
+
 })
 
 UserSchema.methods.toJSON = function () {
     var user = this;
     var userObj = user.toObject();
-    var { email, contact, _id, userImg, name } = userObj
-    return { email, contact, _id, userImg, name }
+    var { email, contact, _id, userImg, name ,fav} = userObj
+    return { email, contact, _id, userImg, name, fav }
 }
 
 // Hashing Of Password

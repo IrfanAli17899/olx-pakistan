@@ -19,7 +19,9 @@ initiateLoader();
 if (page == 'index' || page == '') {
     fetchIndexAds();
 }
-
+if (page == 'showAd') {
+    createAdDetails();
+}
 function authUser() {
     if (token) {
         if (document.querySelector("#logIn")) {
@@ -36,13 +38,14 @@ function authUser() {
             .then((res) => res.json())
             .then((userData) => {
                 crrUserData = userData;
+
                 var HTML = "";
                 HTML += createUserTray(userData);
                 document.querySelector('#user').innerHTML = HTML;
                 switch (page) {
-                    //     case "fav":
-                    //         fetchFavAd(userId)
-                    // break;
+                    case "fav":
+                        fetchFavAd(crrUserData.fav)
+                        break;
                     case "myAds":
                         fetchMyAds(crrUserData._id)
                         break;
@@ -364,14 +367,14 @@ function postEdit(item) {
         headers: {
             "x-auth": token,
             "Content-type": 'application/json',
-            
+
         },
         body: JSON.stringify(item)
     }).then((res) => {
         return res.json()
-    }).then((result)=>{
+    }).then((result) => {
         console.log(result);
-        
+
         createMsg("success", "Posted Successfully")
         document.querySelector("#editForm").reset();
         // document.querySelector('#picShow').src = 'images/upload.png'
@@ -399,8 +402,43 @@ function closeEdit() {
 
     }
 }
-
-
+function addToFav(id) {
+    if (!token) {
+        window.location.href = '/login.html'
+    }
+    fetch(`addToFav/${id}`, {
+        method: "PATCH",
+        headers: {
+            "x-auth": token
+        }
+    }).then((res) => {
+        return res.json()
+    }).then((result) => {
+        createMsg("primary", result.message)
+    }).catch((err) => {
+        console.log(err);
+    })
+}
+function fetchFavAd(fav) {
+    if (!fav.length) {
+        document.querySelector('#favList').innerHTML = `
+        <strong>Not Yet Added</strong>
+        `
+    }
+    var HTML = "";
+    for (var i in fav) {
+        fetch(`getFav/${fav[i]._id}`, {
+            headers: {
+                "x-auth": token
+            }
+        }).then((res) => {
+            return res.json()
+        }).then((ads) => {       
+                HTML += createAd(ads)
+                // document.querySelector(`#favList`).innerHTML = HTML
+            })
+        }
+}
 
 
 //**********************Post-Ad******************//
@@ -607,11 +645,6 @@ function initiateLoader() {
 function removeLoader() {
     if (document.querySelector('.loader')) {
         document.querySelector('.load').removeChild(document.querySelector('.loader'))
-        // if (document.querySelector(`#indexLoader`)) {
-        //     document.querySelector(`#indexLoader`).removeChild(document.querySelector('.loader'))
-        // } else if (document.querySelector(`#${category}List`)) {
-        //     document.querySelector(`#${category}List`).removeChild(document.querySelector('.loader'))
-        // }
     }
 }
 
@@ -715,4 +748,121 @@ function createAd(data) {
 	</div>
 	</div>
 `
+}
+function showAd(adData) {
+    localStorage.setItem("ad", JSON.stringify(adData))
+    window.location.href = '/showAd.html'
+    //     var data = adData;
+    //     if (document.querySelector('#detailBox')) {
+    //         document.body.removeChild(document.querySelector('#detailBox'));
+    //     }
+    //     var div = document.createElement('div')
+    //     div.className = 'animated fadeIn';
+    //     div.id = "detailBox";
+    //     div.innerHTML += `
+    //     <div class="imgCol">
+    //         <a href="${data.src}" target ='_blank'>
+    //             <img src="${data.src}" class="adImg" alt="">
+    //         </a>
+    //     </div>
+    //     <div class="box">
+    //         <div class="col-sm-12" style="padding:0;">
+    //             <button type="button" class="btn btn-danger" onclick='closeAd()' style="float:right">
+    //                 <i class="far fa-times-circle"></i> Close</button>
+    //             <button type="button" class="btn btn-success" onclick="addToFav('${data.productKey}','${data.category}')" style="float:right">
+    //                 <i class="far fa-star"></i> Favourit</button>
+    //         </div>
+    //         <div class="intro text-center">
+    //             <h1>${data.title}</h1>
+    //             <p>${data.description}</p>
+    //         </div>
+    //         <div class="detail">
+    //             <div class="left">
+    //                 <i class="fas fa-money-check-alt"></i> Price</div>
+    //             <div class="right">${data.price}PKR</div>
+    //             <div class="left">
+    //                 <i class="fa fa-tag"></i> Category</div>
+    //             <div class="right">${data.category}</div>
+    //             <div class="left">
+    //                 <i class="fa fa-info-circle"></i> Model</div>
+    //             <div class="right">${data.model}</div>
+    //             <div class="left">
+    //                 <i class='fa fa-phone'></i> Contact</div>
+    //             <div class="right">${data.contact}</div>
+    //             <div class="center">
+    //                 <a href="JavaScript:void(0)" onclick="return chatPop('${data.sellerId}','${data.category}','${data._id}','${crrUserData._id}')">
+    //                     <i class="fas fa-envelope"></i> Chat</a>
+    //             </div>
+    //             <div class="center date">
+    //                 <i class="fa fa-calendar" aria-hidden="true"></i> Published On ${data.adDate}
+    //             </div>
+    //         </div>
+    // </div>
+    //             `
+    //     document.body.appendChild(div)
+}
+function createAdDetails() {
+    var data = JSON.parse(localStorage.getItem("ad"));
+    console.log(data);
+    var div = document.createElement("div");
+    div.innerHTML = `
+    <div id="page-wrapper" class="sign-in-wrapper">
+            <div class="graphs" style="text-align:center;background:rgb(243, 243, 243)">
+                <a href="${data.src}" target="_blank">
+                    <img src="${data.src}" alt="pic" id="adImg">
+                </a>
+                <div class="adDetails">
+                    <h1>${data.title}</h1>
+                    <p>"${data.model}"</p>
+                    <hr>
+                    <h1>Description</h1>
+                    <p class="des">"${data.description}"</p>
+                    <div class="adData">
+                        <div>
+                            <span class="left">
+                                <i class="fas fa-money-check-alt"></i> Price
+                            </span>
+                            <span class="right">
+                                ${data.price}PKR
+                            </span>
+                        </div>
+                        <div>
+                            <span class="left">
+                                <i class="fa fa-tag"></i> Category
+                            </span>
+                            <span class="right">
+                                ${data.category}
+                            </span>
+                        </div>
+                        <div>
+                            <span class="left">
+                                <i class='fa fa-phone'></i> Contact
+                            </span>
+                            <span class="right">
+                                ${data.contact}
+                            </span>
+                        </div>
+                        <div>
+                            <span class="left">
+                                <i class="fa fa-calendar" aria-hidden="true"></i> Published
+                            </span>
+                            <span class="right">
+                                ${data.adDate}
+                            </span>
+                        </div>
+
+
+
+                    </div>
+                </div>
+                <div class='newBtn'>
+                    <button type="button" class="btn btn-info"  >
+                        <i class="fas fa-envelope"></i> Chat</button>
+                    <button type="button" class="btn btn-success" onclick="return addToFav('${data._id}')">
+                        <i class="far fa-star"></i> Favourit</button>
+                </div>
+
+            </div>
+    `
+    document.getElementById('view').appendChild(div)
 }
