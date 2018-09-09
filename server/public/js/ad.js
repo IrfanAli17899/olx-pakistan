@@ -1,8 +1,20 @@
+if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register('sw.js')
+        .then(() => {
+            console.log("Registered");
+        })
+        .catch((err) => {
+            console.log(err);
+
+        })
+}
 var token = localStorage.getItem("_t");
 var crrUserData;
 
 try {
     var storage = firebase.storage();
+    var messaging = firebase.messaging()
+    var database = firebase.database()
     if (category) {
         fetchCategoryAds(category)
     }
@@ -60,21 +72,21 @@ function authUser() {
                     //         getChat(userId)
                     //         break;
                 }
+                messaging.requestPermission()
+                    .then(() => {
+                        console.log("Permission Granted");
+                        return messaging.getToken()
+                    }).then((token) => {
+                        console.log(token);
+                        database.ref(`tokens/${crrUserData._id}`).set({
+                            token: token
+                        })
+                    })
+                messaging.onMessage(function (payload) {
+                    console.log('payload', payload);
+                })
             })
 
-        // messaging.requestPermission()
-        //     .then(() => {
-        //         console.log("Permission Granted");
-        //         return messaging.getToken()
-        //     }).then((token) => {
-        //         console.log(token);
-        //         database.ref(`tokens/${userId}`).set({
-        //             token: token
-        //         })
-        //     })
-        // messaging.onMessage(function (payload) {
-        //     console.log('payload', payload);
-        // })
     } else {
         // No user is signed in.
         if (page === 'post-ad' || page === 'fav' || page === 'notification' || page === 'myAds' || page === 'buy') {
@@ -85,20 +97,7 @@ function authUser() {
 
 //**************************Ad Creators**********************//
 
-// function createDefaultAd(category) {
-//     var list = document.querySelector(`#${category}List`)
-//     if (list) {
-//         fetchData(category)
-//             .then((ads) => {
-//                 var HTML = "";
-//                 for (var ad in ads) {
-//                     HTML += createAd(ads[ad])
-//                 }
-//                 removeLoader(`#${category}List`)
-//                 list.innerHTML = HTML;
-//             })
-//     }
-// }
+
 //**************************INDEX/ADS********************//
 function fetchIndexAds() {
     fetch('/index.html/getAds').then((res) => {
@@ -433,11 +432,11 @@ function fetchFavAd(fav) {
             }
         }).then((res) => {
             return res.json()
-        }).then((ads) => {       
-                HTML += createAd(ads)
-                // document.querySelector(`#favList`).innerHTML = HTML
-            })
-        }
+        }).then((ads) => {
+            HTML += createAd(ads)
+            document.querySelector(`#favList`).innerHTML = HTML
+        })
+    }
 }
 
 
@@ -478,21 +477,20 @@ function postAd() {
             }).then((result) => {
                 console.log(result);
                 if (!result.errors) {
-                    // .then(() => {
-                    //     database.ref("notifications/notification").set({
-                    //         posterName: crrUserName,
-                    //         productImg: url,
-                    //         category: formData.get("category"),
-                    //         msgDate: (new Date()).toLocaleDateString(),
-                    //         msgTime: (new Date()).toLocaleTimeString(),
-                    //     })
-                    // })
                     createMsg("success", "Posted Successfully")
                     document.querySelector("#postForm").reset();
                     document.querySelector('#picShow').src = 'images/upload.png'
                 } else {
                     throw result
                 }
+            }).then(() => {
+                database.ref("notifications/notification").set({
+                    posterName: crrUserData.name,
+                    productImg: url,
+                    category: formData.get("category"),
+                    msgDate: (new Date()).toLocaleDateString(),
+                    msgTime: (new Date()).toLocaleTimeString(),
+                })
             }).catch((err) => {
                 var errors = err.errors;
                 for (var err in errors) {
