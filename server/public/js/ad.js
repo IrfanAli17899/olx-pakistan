@@ -42,7 +42,7 @@ function authUser() {
         document.querySelector('#user').innerHTML = `
         <div class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>
         `
-        fetch('/auth', {
+        fetch(`${location.origin}/auth`, {
             headers: {
                 "x-auth": token
             }
@@ -100,7 +100,7 @@ function authUser() {
 
 //**************************INDEX/ADS********************//
 function fetchIndexAds() {
-    fetch('/index.html/getAds').then((res) => {
+    fetch(`${location.origin}/index.html/getAds`).then((res) => {
         return res.json();
     }).then((ads) => {
         var HTML = "";
@@ -126,7 +126,7 @@ function fetchCategoryAds(page) {
     if (!document.querySelector(`#${page}List`)) {
         return;
     }
-    fetch(`/getCategoryAds/${page.toLowerCase()}`).then((res) => {
+    fetch(`${location.origin}/getCategoryAds/${page.toLowerCase()}`).then((res) => {
         return res.json()
     }).then((ads) => {
         if (!ads.length) {
@@ -156,7 +156,7 @@ function searchName(params) {
 
     HTML = `<h3>You Are Searching For "${keyword}"</h3>`
 
-    fetch(`/search/${category.toLowerCase()}/${keyword}`).then((res) => {
+    fetch(`${location.origin}/search/${category.toLowerCase()}/${keyword}`).then((res) => {
         return res.json()
     }).then((result) => {
         if (!result.length) {
@@ -176,7 +176,7 @@ function searchName(params) {
 
 function fetchMyAds(id) {
     var list = document.querySelector(`#myAdsList`)
-    fetch(`/myAds/${id}`, {
+    fetch(`${location.origin}/myAds/${id}`, {
         headers: {
             'x-auth': token
         }
@@ -248,7 +248,7 @@ function fetchMyAds(id) {
 }
 
 function deleteAd(id, i) {
-    fetch(`/deleteAd/${crrUserData._id}/${id}`, {
+    fetch(`${location.origin}/deleteAd/${crrUserData._id}/${id}`, {
         method: "DELETE",
         headers: {
             "x-auth": token
@@ -361,7 +361,7 @@ function newDetails(data) {
 }
 function postEdit(item) {
     console.log(item);
-    fetch(`/editPost/${item.sellerId}/${item._id}`, {
+    fetch(`${location.origin}/editPost/${item.sellerId}/${item._id}`, {
         method: "PATCH",
         headers: {
             "x-auth": token,
@@ -405,7 +405,7 @@ function addToFav(id) {
     if (!token) {
         window.location.href = '/login.html'
     }
-    fetch(`addToFav/${id}`, {
+    fetch(`${location.origin}/addToFav/${id}`, {
         method: "PATCH",
         headers: {
             "x-auth": token
@@ -456,7 +456,7 @@ function postAd() {
             return snapShot.ref.getDownloadURL();
         })
         .then((url) => {
-            fetch('/post-ad.html', {
+            fetch(`${location.origin}/post-ad.html`, {
                 method: "POST",
                 headers: {
                     "Accept": 'application/json',
@@ -520,7 +520,7 @@ function signUpUser() {
         .then((snapShot) => {
             return snapShot.ref.getDownloadURL();
         }).then((url) => {
-            fetch('/register.html', {
+            fetch(`${location.origin}/register.html`, {
                 method: "POST",
                 headers: {
                     'Accept': 'application/json',
@@ -565,10 +565,10 @@ function signUpUser() {
 //signIn***************************
 function signInUser() {
     let form = new FormData(document.querySelector('#signInForm'));
-    fetch('/login.html', {
+    console.log(form.get('email'),form.get('password'));
+    fetch(`${location.origin}/login.html`, {
         method: "POST",
         headers: {
-            "Accept": 'application/json',
             "Content-type": 'application/json'
         },
         body: JSON.stringify({
