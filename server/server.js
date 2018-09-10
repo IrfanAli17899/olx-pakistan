@@ -287,7 +287,7 @@ app.get('/getFav/:id', authenticate, (req, res) => {
         })
     }
     Ad.findOne({ "_id": id }).then((result) => {
-        if(result){
+        if (result) {
             res.status(200).send(result)
         }
     })
