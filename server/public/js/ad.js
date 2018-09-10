@@ -8,6 +8,7 @@ if ("serviceWorker" in navigator) {
 
         })
 }
+console.log(url);
 var token = localStorage.getItem("_t");
 var crrUserData;
 
@@ -42,7 +43,7 @@ function authUser() {
         document.querySelector('#user').innerHTML = `
         <div class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>
         `
-        fetch(`${location.origin}/auth`, {
+        fetch(`${url}/auth`, {
             headers: {
                 "x-auth": token
             }
@@ -100,7 +101,7 @@ function authUser() {
 
 //**************************INDEX/ADS********************//
 function fetchIndexAds() {
-    fetch(`${location.origin}/index.html/getAds`).then((res) => {
+    fetch(`${url}/index.html/getAds`).then((res) => {
         return res.json();
     }).then((ads) => {
         var HTML = "";
@@ -126,7 +127,7 @@ function fetchCategoryAds(page) {
     if (!document.querySelector(`#${page}List`)) {
         return;
     }
-    fetch(`${location.origin}/getCategoryAds/${page.toLowerCase()}`).then((res) => {
+    fetch(`${url}/getCategoryAds/${page.toLowerCase()}`).then((res) => {
         return res.json()
     }).then((ads) => {
         if (!ads.length) {
@@ -156,7 +157,7 @@ function searchName(params) {
 
     HTML = `<h3>You Are Searching For "${keyword}"</h3>`
 
-    fetch(`${location.origin}/search/${category.toLowerCase()}/${keyword}`).then((res) => {
+    fetch(`${url}/search/${category.toLowerCase()}/${keyword}`).then((res) => {
         return res.json()
     }).then((result) => {
         if (!result.length) {
@@ -176,7 +177,7 @@ function searchName(params) {
 
 function fetchMyAds(id) {
     var list = document.querySelector(`#myAdsList`)
-    fetch(`${location.origin}/myAds/${id}`, {
+    fetch(`${url}/myAds/${id}`, {
         headers: {
             'x-auth': token
         }
@@ -248,7 +249,7 @@ function fetchMyAds(id) {
 }
 
 function deleteAd(id, i) {
-    fetch(`${location.origin}/deleteAd/${crrUserData._id}/${id}`, {
+    fetch(`${url}/deleteAd/${crrUserData._id}/${id}`, {
         method: "DELETE",
         headers: {
             "x-auth": token
@@ -361,7 +362,7 @@ function newDetails(data) {
 }
 function postEdit(item) {
     console.log(item);
-    fetch(`${location.origin}/editPost/${item.sellerId}/${item._id}`, {
+    fetch(`${url}/editPost/${item.sellerId}/${item._id}`, {
         method: "PATCH",
         headers: {
             "x-auth": token,
@@ -405,7 +406,7 @@ function addToFav(id) {
     if (!token) {
         window.location.href = '/login.html'
     }
-    fetch(`${location.origin}/addToFav/${id}`, {
+    fetch(`${url}/addToFav/${id}`, {
         method: "PATCH",
         headers: {
             "x-auth": token
@@ -456,7 +457,7 @@ function postAd() {
             return snapShot.ref.getDownloadURL();
         })
         .then((url) => {
-            fetch(`${location.origin}/post-ad.html`, {
+            fetch(`${url}/post-ad.html`, {
                 method: "POST",
                 headers: {
                     "Accept": 'application/json',
@@ -519,8 +520,8 @@ function signUpUser() {
     storage.ref(`userImg/${img.name + Math.random()}`).put(img)
         .then((snapShot) => {
             return snapShot.ref.getDownloadURL();
-        }).then((url) => {
-            fetch(`${location.origin}/register.html`, {
+        }).then((imgUrl) => {
+            fetch(`${url}/register.html`, {
                 method: "POST",
                 headers: {
                     'Accept': 'application/json',
@@ -531,7 +532,7 @@ function signUpUser() {
                     email: form.get('email'),
                     password: form.get("password"),
                     contact: form.get("contact"),
-                    userImg: url
+                    userImg: imgUrl
                 })
             }).then((res) => {
                 return res.json()
@@ -566,7 +567,7 @@ function signUpUser() {
 function signInUser() {
     let form = new FormData(document.querySelector('#signInForm'));
     console.log(form.get('email'),form.get('password'));
-    fetch(`${location.origin}/login.html`, {
+    fetch(`${url}/login.html`, {
         method: "POST",
         headers: {
             "Content-type": 'application/json'
@@ -750,54 +751,6 @@ function createAd(data) {
 function showAd(adData) {
     localStorage.setItem("ad", JSON.stringify(adData))
     window.location.href = '/showAd.html'
-    //     var data = adData;
-    //     if (document.querySelector('#detailBox')) {
-    //         document.body.removeChild(document.querySelector('#detailBox'));
-    //     }
-    //     var div = document.createElement('div')
-    //     div.className = 'animated fadeIn';
-    //     div.id = "detailBox";
-    //     div.innerHTML += `
-    //     <div class="imgCol">
-    //         <a href="${data.src}" target ='_blank'>
-    //             <img src="${data.src}" class="adImg" alt="">
-    //         </a>
-    //     </div>
-    //     <div class="box">
-    //         <div class="col-sm-12" style="padding:0;">
-    //             <button type="button" class="btn btn-danger" onclick='closeAd()' style="float:right">
-    //                 <i class="far fa-times-circle"></i> Close</button>
-    //             <button type="button" class="btn btn-success" onclick="addToFav('${data.productKey}','${data.category}')" style="float:right">
-    //                 <i class="far fa-star"></i> Favourit</button>
-    //         </div>
-    //         <div class="intro text-center">
-    //             <h1>${data.title}</h1>
-    //             <p>${data.description}</p>
-    //         </div>
-    //         <div class="detail">
-    //             <div class="left">
-    //                 <i class="fas fa-money-check-alt"></i> Price</div>
-    //             <div class="right">${data.price}PKR</div>
-    //             <div class="left">
-    //                 <i class="fa fa-tag"></i> Category</div>
-    //             <div class="right">${data.category}</div>
-    //             <div class="left">
-    //                 <i class="fa fa-info-circle"></i> Model</div>
-    //             <div class="right">${data.model}</div>
-    //             <div class="left">
-    //                 <i class='fa fa-phone'></i> Contact</div>
-    //             <div class="right">${data.contact}</div>
-    //             <div class="center">
-    //                 <a href="JavaScript:void(0)" onclick="return chatPop('${data.sellerId}','${data.category}','${data._id}','${crrUserData._id}')">
-    //                     <i class="fas fa-envelope"></i> Chat</a>
-    //             </div>
-    //             <div class="center date">
-    //                 <i class="fa fa-calendar" aria-hidden="true"></i> Published On ${data.adDate}
-    //             </div>
-    //         </div>
-    // </div>
-    //             `
-    //     document.body.appendChild(div)
 }
 function createAdDetails() {
     var data = JSON.parse(localStorage.getItem("ad"));

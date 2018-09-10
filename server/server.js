@@ -10,6 +10,7 @@ const { authenticate } = require("./middleware/authenticate")
 const app = express();
 const PORT = process.env.PORT || 786
 const staticPath = path.join(__dirname, '/public')
+const url = process.env.URL || 'http://localhost:786'
 app.use(bodyParser.json());
 app.use(express.static(staticPath))
 app.set('view engine', 'hbs');
@@ -23,14 +24,14 @@ app.get('/auth', authenticate, (req, res) => {
 
 
 app.get('/', (req, res) => {
-    res.render('index.hbs')
+    res.render('index.hbs', { url })
 })
 app.get('/index.html', (req, res) => {
-    res.render('index.hbs')
+    res.render('index.hbs', { url })
 })
 
 app.get('/register.html', (req, res) => {
-    res.render('register.hbs');
+    res.render('register.hbs', { url });
 })
 app.post('/register.html', (req, res) => {
     var user = new User({
@@ -58,7 +59,7 @@ app.post('/register.html', (req, res) => {
 
 
 app.get('/login.html', (req, res) => {
-    res.render('login.hbs')
+    res.render('login.hbs', { url })
 })
 
 app.post('/login.html', (req, res) => {
@@ -73,42 +74,41 @@ app.post('/login.html', (req, res) => {
         })
 
 })
-
 app.get('/bikes.html', (req, res) => {
-    res.render('ad.hbs', { page: "bikes".toUpperCase() })
+    res.render('ad.hbs', { page: "bikes".toUpperCase(), url: url })
 })
 app.get('/electronicsAppliances.html', (req, res) => {
-    res.render('ad.hbs', { category: "electronicsAppliances".toUpperCase() })
+    res.render('ad.hbs', { category: "electronicsAppliances".toUpperCase(), url })
 })
 app.get('/cars.html', (req, res) => {
-    res.render('ad.hbs', { category: "cars".toUpperCase() })
+    res.render('ad.hbs', { category: "cars".toUpperCase(), url })
 })
 app.get('/mobiles.html', (req, res) => {
-    res.render('ad.hbs', { category: "mobiles".toUpperCase() })
+    res.render('ad.hbs', { category: "mobiles".toUpperCase(), url })
 })
 app.get('/realEstate.html', (req, res) => {
-    res.render('ad.hbs', { category: "realEstate".toUpperCase() })
+    res.render('ad.hbs', { category: "realEstate".toUpperCase(), url })
 })
 app.get('/furniture.html', (req, res) => {
-    res.render('ad.hbs', { category: "furniture".toUpperCase() })
+    res.render('ad.hbs', { category: "furniture".toUpperCase(), url })
 })
 app.get('/buy.html', (req, res) => {
-    res.render('buy.hbs')
+    res.render('buy.hbs', { url })
 })
 app.get('/fav.html', (req, res) => {
-    res.render('fav.hbs')
+    res.render('fav.hbs', { url })
 })
 app.get('/notification.html', (req, res) => {
-    res.render('notification.hbs')
+    res.render('notification.hbs', { url })
 })
 app.get('/post-ad.html', (req, res) => {
-    res.render('post-ad.hbs')
+    res.render('post-ad.hbs', { url })
 })
 app.get('/myAds.html', (req, res) => {
-    res.render('myAds.hbs')
+    res.render('myAds.hbs', { url })
 })
 app.get('/showAd.html', (req, res) => {
-    res.render('showAd.hbs')
+    res.render('showAd.hbs', { url })
 })
 //LOGOUT_ROUTE
 app.get('/logout', authenticate, (req, res) => {

@@ -62,14 +62,14 @@
 					<label>Browse Categories</label>
 					<select name="category" onchange="searchCategory(this.value)">
 						<option value="-1">Select-Category</option>
-						<option value="mobiles" >Mobiles</option>
+						<option value="mobiles">Mobiles</option>
 						<option value="electronicsAppliances">Electronics & Appliances</option>
 						<option value="cars">Cars</option>
 						<option value="bikes">Bikes</option>
 						<option value="furniture">Furniture</option>
 						<option value="realEstate">Real Estate</option>
 					</select>
-					</div>
+				</div>
 				<div class="clearfix"></div>
 			</div>
 			<ol class="breadcrumb" style="margin-bottom: 5px;">
@@ -82,10 +82,10 @@
 				<div class="side-bar col-md-4">
 					<div class="search-hotel">
 						<h3 class="sear-head">Name contains</h3>
-						{{!-- <form action="JavaScript:void(0)" id="nameSearchForm" onsubmit="searchByName()"> --}}
-							<input type="text" name="keyName" onkeyup="searchName(this)" id="searchBox" onkeydown="searchName(this)" >
-							
-						{{!-- </form> --}}
+						{{!--
+						<form action="JavaScript:void(0)" id="nameSearchForm" onsubmit="searchByName()"> --}}
+							<input type="text" name="keyName" onkeyup="searchName(this)" id="searchBox" onkeydown="searchName(this)"> {{!-- </form>
+						--}}
 					</div>
 				</div>
 				<div class="ads-display col-md-8">
@@ -188,6 +188,7 @@
 		firebase.initializeApp(config);
 		const category = '{{ category }}'
 	</script>
+	<script>const url = '{{ url }}';</script>
 	<script src="js/ad.js"></script>
 
 </body>
