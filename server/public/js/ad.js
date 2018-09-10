@@ -8,7 +8,6 @@ if ("serviceWorker" in navigator) {
 
         })
 }
-console.log(url);
 var token = localStorage.getItem("_t");
 var crrUserData;
 
@@ -570,6 +569,7 @@ function signInUser() {
     fetch(`${url}/login.html`, {
         method: "POST",
         headers: {
+            'Accept': 'application/json',
             "Content-type": 'application/json'
         },
         body: JSON.stringify({
