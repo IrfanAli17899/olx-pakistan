@@ -65,8 +65,8 @@ app.get('/login.html', (req, res) => {
 app.post('/login.html', (req, res) => {
     User.findByCredentials(req.body.email, req.body.password).then((user) => {
         console.log(user);
-        user.getAuthToken().then((token) => {
-            return res.status(201).header('x-auth', token).send(user)
+        user.getAuthToken().then(({token,result}) => {
+            return res.status(201).header('x-auth', token).send(result)
         });
     })
         .catch((errors) => {

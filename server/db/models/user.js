@@ -66,7 +66,7 @@ const UserSchema = new mongoose.Schema({
 UserSchema.methods.toJSON = function () {
     var user = this;
     var userObj = user.toObject();
-    var { email, contact, _id, userImg, name ,fav} = userObj
+    var { email, contact, _id, userImg, name, fav } = userObj
     return { email, contact, _id, userImg, name, fav }
 }
 
@@ -125,9 +125,13 @@ UserSchema.methods.getAuthToken = function () {
     var access = 'auth';
     var token = jwt.sign({ _id: user._id.toHexString(), access }, '17899').toString();
     user.tokens.push({ access, token });
-    return user.save().then(() => {
-        return token
-    })
+    // return user.save().then(() => {
+    //     return token
+    // }).catch((err) => err)
+    return User.findByIdAndUpdate(user._id, user, { new: true }).then((result) => {
+        return {token,result}
+        
+    }).catch(err  => err)
 
 }
 
